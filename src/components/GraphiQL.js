@@ -19,6 +19,7 @@ import { ExecuteButton } from './ExecuteButton';
 import { ToolbarButton } from './ToolbarButton';
 import { QueryEditor } from './QueryEditor';
 import { VariableEditor } from './VariableEditor';
+import { HeaderEditor } from './HeaderEditor';
 import { ResultViewer } from './ResultViewer';
 import { DocExplorer } from './DocExplorer';
 import CodeMirrorSizer from '../utility/CodeMirrorSizer';
@@ -168,7 +169,10 @@ export class GraphiQL extends React.Component {
       editorFlex: Number(this._storageGet('editorFlex')) || 1,
       variableEditorOpen: Boolean(variables),
       variableEditorHeight:
-        Number(this._storageGet('variableEditorHeight')) || 200,
+        Number(this._storageGet('headerEditorHeight')) || 200,
+      headerEditorOpen: Boolean(variables),
+      headerEditorHeight:
+        Number(this._storageGet('headerEditorHeight')) || 200,
       docExplorerOpen: false,
       docExplorerWidth: Number(this._storageGet('docExplorerWidth')) || 350,
       isWaitingForResponse: false,
@@ -242,6 +246,7 @@ export class GraphiQL extends React.Component {
     this.codeMirrorSizer.updateSizes([
       this.queryEditorComponent,
       this.variableEditorComponent,
+      this.headerEditorComponent,
       this.resultComponent,
     ]);
   }
@@ -281,8 +286,12 @@ export class GraphiQL extends React.Component {
     };
 
     const variableOpen = this.state.variableEditorOpen;
+    const headerOpen = this.state.headerEditorOpen;
     const variableStyle = {
       height: variableOpen ? this.state.variableEditorHeight : null
+    };
+    const headerStyle = {
+      height: headerOpen ? this.state.headerEditorHeight : null
     };
 
     return (
@@ -350,6 +359,21 @@ export class GraphiQL extends React.Component {
                 ref={c => { this.resultComponent = c; }}
                 value={this.state.response}
               />
+              <div className="variable-editor" style={headerStyle}>
+                <div
+                  className="variable-editor-title"
+                  style={{ cursor: headerOpen ? 'row-resize' : 'n-resize' }}
+                  onMouseDown={this.handleHeaderResizeStart}>
+                  {'Query Headers'}
+                </div>
+                <HeaderEditor
+                  ref={n => { this.headerEditorComponent = n; }}
+                  value={this.state.variables}
+                  variableToType={this.state.variableToType}
+                  onEdit={this.handleEditVariables}
+                  onHintInformationRender={this.handleHintInformationRender}
+                />
+              </div>
               {footer}
             </div>
           </div>
@@ -814,6 +838,52 @@ export class GraphiQL extends React.Component {
     let onMouseUp = () => {
       if (!didMove) {
         this.setState({ variableEditorOpen: !wasOpen });
+      }
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      onMouseMove = null;
+      onMouseUp = null;
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  handleHeaderResizeStart = downEvent => {
+    downEvent.preventDefault();
+
+    let didMove = false;
+    const wasOpen = this.state.headerEditorOpen;
+    const hadHeight = this.state.headerEditorHeight;
+    const offset = downEvent.clientY - getTop(downEvent.target);
+
+    let onMouseMove = moveEvent => {
+      if (moveEvent.buttons === 0) {
+        return onMouseUp();
+      }
+
+      didMove = true;
+
+      const editorBar = ReactDOM.findDOMNode(this.editorBarComponent);
+      const topSize = moveEvent.clientY - getTop(editorBar) - offset;
+      const bottomSize = editorBar.clientHeight - topSize;
+      if (bottomSize < 60) {
+        this.setState({
+          headerEditorOpen: false,
+          headerEditorHeight: hadHeight
+        });
+      } else {
+        this.setState({
+          headerEditorOpen: true,
+          headerEditorHeight: bottomSize
+        });
+      }
+    };
+
+    let onMouseUp = () => {
+      if (!didMove) {
+        this.setState({ headerEditorOpen: !wasOpen });
       }
 
       document.removeEventListener('mousemove', onMouseMove);

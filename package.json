@@ -4,7 +4,8 @@
   "description": "An graphical interactive in-browser GraphQL IDE.",
   "contributors": [
     "Hyohyeon Jeong <asiandrummer@fb.com>",
-    "Lee Byron <lee@leebyron.com> (http://leebyron.com/)"
+    "Lee Byron <lee@leebyron.com> (http://leebyron.com/)",
+    "Eugene Hauptmann <eugenehauptmann@gmail.com>"
   ],
   "homepage": "https://github.com/graphql/graphiql",
   "bugs": {
