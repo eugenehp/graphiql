@@ -259,6 +259,7 @@ export class GraphiQL extends React.Component {
     this._storageSet('operationName', this.state.operationName);
     this._storageSet('editorFlex', this.state.editorFlex);
     this._storageSet('variableEditorHeight', this.state.variableEditorHeight);
+    this._storageSet('headerEditorHeight', this.state.headerEditorHeight);
     this._storageSet('docExplorerWidth', this.state.docExplorerWidth);
 
     document.removeEventListener('keydown', this._keyHandler, true);
@@ -286,10 +287,10 @@ export class GraphiQL extends React.Component {
     };
 
     const variableOpen = this.state.variableEditorOpen;
-    const headerOpen = this.state.headerEditorOpen;
     const variableStyle = {
       height: variableOpen ? this.state.variableEditorHeight : null
     };
+    const headerOpen = this.state.headerEditorOpen;
     const headerStyle = {
       height: headerOpen ? this.state.headerEditorHeight : null
     };
