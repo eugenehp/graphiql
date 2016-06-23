@@ -57,6 +57,10 @@ import {
  *     query variables, if `undefined` is provided, the stored variables will
  *     be used.
  *
+ *   - headers: an optional GraphQL string to use as the initial displayed
+ *     query headers, if `undefined` is provided, the stored headers will
+ *     be used.
+ *
  *   - operationName: an optional name of which GraphQL operation should be
  *     executed.
  *
@@ -77,6 +81,10 @@ import {
  *   - onEditVariables: an optional function which will be called when the Query
  *     varible editor changes. The argument to the function will be the
  *     variables string.
+*
+ *   - onEditHeaders: an optional function which will be called when the Query
+ *     header editor changes. The argument to the function will be the
+ *     headers string.
  *
  *   - onEditOperationName: an optional function which will be called when the
  *     operation name to be executed changes.
@@ -110,6 +118,7 @@ export class GraphiQL extends React.Component {
     schema: PropTypes.instanceOf(GraphQLSchema),
     query: PropTypes.string,
     variables: PropTypes.string,
+    headers: PropTypes.string,
     operationName: PropTypes.string,
     response: PropTypes.string,
     storage: PropTypes.shape({
@@ -119,6 +128,7 @@ export class GraphiQL extends React.Component {
     defaultQuery: PropTypes.string,
     onEditQuery: PropTypes.func,
     onEditVariables: PropTypes.func,
+    onEditHeaders: PropTypes.func,
     onEditOperationName: PropTypes.func,
     onToggleDocs: PropTypes.func,
     getDefaultFieldNames: PropTypes.func
@@ -150,6 +160,11 @@ export class GraphiQL extends React.Component {
       props.variables !== undefined ? props.variables :
       this._storageGet('variables');
 
+    // Determine the initial headers to display.
+    const headers =
+      props.headers !== undefined ? props.headers :
+      this._storageGet('headers');
+
     // Determine the initial operationName to use.
     const operationName =
       props.operationName !== undefined ? props.operationName :
@@ -164,13 +179,14 @@ export class GraphiQL extends React.Component {
       schema: props.schema,
       query,
       variables,
+      headers,
       operationName,
       response: props.response,
       editorFlex: Number(this._storageGet('editorFlex')) || 1,
       variableEditorOpen: Boolean(variables),
       variableEditorHeight:
         Number(this._storageGet('headerEditorHeight')) || 200,
-      headerEditorOpen: Boolean(variables),
+      headerEditorOpen: Boolean(headers),
       headerEditorHeight:
         Number(this._storageGet('headerEditorHeight')) || 200,
       docExplorerOpen: false,
@@ -207,6 +223,7 @@ export class GraphiQL extends React.Component {
     let nextSchema = this.state.schema;
     let nextQuery = this.state.query;
     let nextVariables = this.state.variables;
+    let nextHeaders = this.state.headers;
     let nextOperationName = this.state.operationName;
     let nextResponse = this.state.response;
 
@@ -218,6 +235,9 @@ export class GraphiQL extends React.Component {
     }
     if (nextProps.variables !== undefined) {
       nextVariables = nextProps.variables;
+    }
+    if (nextProps.headers !== undefined) {
+      nextHeaders = nextProps.headers;
     }
     if (nextProps.operationName !== undefined) {
       nextOperationName = nextProps.operationName;
@@ -235,6 +255,7 @@ export class GraphiQL extends React.Component {
       schema: nextSchema,
       query: nextQuery,
       variables: nextVariables,
+      headers: nextHeaders,
       operationName: nextOperationName,
       response: nextResponse,
     });
@@ -256,6 +277,7 @@ export class GraphiQL extends React.Component {
   componentWillUnmount() {
     this._storageSet('query', this.state.query);
     this._storageSet('variables', this.state.variables);
+    this._storageSet('headers', this.state.headers);
     this._storageSet('operationName', this.state.operationName);
     this._storageSet('editorFlex', this.state.editorFlex);
     this._storageSet('variableEditorHeight', this.state.variableEditorHeight);
@@ -369,9 +391,9 @@ export class GraphiQL extends React.Component {
                 </div>
                 <HeaderEditor
                   ref={n => { this.headerEditorComponent = n; }}
-                  value={this.state.variables}
-                  variableToType={this.state.variableToType}
-                  onEdit={this.handleEditVariables}
+                  value={this.state.headers}
+                  headerToType={this.state.headerToType}
+                  onEdit={this.handleEditHeaders}
                   onHintInformationRender={this.handleHintInformationRender}
                 />
               </div>
@@ -501,9 +523,9 @@ export class GraphiQL extends React.Component {
     }
   }
 
-  _fetchQuery(query, variables, operationName, cb) {
+  _fetchQuery(query, variables, headers, operationName, cb) {
     const fetcher = this.props.fetcher;
-    const fetch = fetcher({ query, variables, operationName });
+    const fetch = fetcher({ query, variables, headers, operationName });
 
     if (isPromise(fetch)) {
       // If fetcher returned a Promise, then call the callback when the promise
@@ -553,6 +575,7 @@ export class GraphiQL extends React.Component {
     // the current query from the editor.
     const editedQuery = this.autoCompleteLeafs() || this.state.query;
     const variables = this.state.variables;
+    const headers = this.state.headers;
     let operationName = this.state.operationName;
 
     // If an operation was explicitly provided, different from the current
@@ -569,6 +592,7 @@ export class GraphiQL extends React.Component {
     const subscription = this._fetchQuery(
       editedQuery,
       variables,
+      headers,
       operationName,
       result => {
         if (queryID === this._editorQueryID) {
@@ -680,6 +704,13 @@ export class GraphiQL extends React.Component {
     this.setState({ variables: value });
     if (this.props.onEditVariables) {
       this.props.onEditVariables(value);
+    }
+  }
+
+  handleEditHeaders = value => {
+    this.setState({ headers: value });
+    if (this.props.onEditHeaders) {
+      this.props.onEditHeaders(value);
     }
   }
 

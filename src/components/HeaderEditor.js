@@ -26,18 +26,18 @@ import onHasCompletion from '../utility/onHasCompletion';
 /**
  * HeaderEditor
  *
- * An instance of CodeMirror for editing variables defined in QueryEditor.
+ * An instance of CodeMirror for editing headers defined in QueryEditor.
  *
  * Props:
- *
- *   - variableToType: A mapping of variable name to GraphQLType.
+ *    TODO: do we need this one?
+ *   - headerToType: A mapping of header name to GraphQLType.
  *   - value: The text of the editor.
  *   - onEdit: A function called when the editor changes, given the edited text.
  *
  */
 export class HeaderEditor extends React.Component {
   static propTypes = {
-    variableToType: PropTypes.object,
+    headerToType: PropTypes.object,
     value: PropTypes.string,
     onEdit: PropTypes.func,
     onHintInformationRender: PropTypes.func,

@@ -25,8 +25,17 @@ import {
 
 var app = express();
 app.use(express.static(__dirname));
-app.use('/graphql', graphqlHTTP(() => ({
-  schema: TestSchema
+
+function middleware(req,res,next){
+  console.log('headers',req.headers);
+  next();
+}
+
+app.use('/graphql', middleware, graphqlHTTP(request => ({
+  schema: TestSchema,
+  context: {
+    rootValue: { headers: request.headers  }
+  },
 })));
 app.listen(8080);
 console.log('Started on http://localhost:8080/');

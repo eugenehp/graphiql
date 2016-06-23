@@ -90,12 +90,16 @@
 
       // Defines a GraphQL fetcher using the fetch API.
       function graphQLFetcher(graphQLParams) {
+        console.log('graphQLFetcher',graphQLParams);
+        var headers = {};
+        if(graphQLParams.headers)
+          headers = JSON.parse(graphQLParams.headers)
+        headers['Accept'] = 'application/json';
+        headers['Content-Type'] = 'application/json';
+        
         return fetch(window.location.origin + '/graphql', {
           method: 'post',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
+          headers: headers,
           body: JSON.stringify(graphQLParams),
           credentials: 'include',
         }).then(function (response) {
